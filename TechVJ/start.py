@@ -87,6 +87,14 @@ async def send_help(client: Client, message: Message):
         text=f"{HELP_TXT}"
     )
 
+@Client.on_message(filters.command("batch"))
+async def batch_cmd(client: Client, message: Message):
+    uid = message.from_user.id
+
+    batch_temp.STATE[uid] = "WAIT_START_LINK"
+    batch_temp.IS_BATCH[uid] = True
+
+    await message.reply_text("📌 Send START post link now:")
 # cancel command
 @Client.on_message(filters.command(["cancel"]))
 async def send_cancel(client: Client, message: Message):
