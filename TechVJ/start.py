@@ -118,7 +118,7 @@ async def save(client: Client, message: Message):
         return await message.reply_text("📌 Now send number of files to download:")
 
     # STEP 2: Count receive
-if state == "WAIT_COUNT":
+    if state == "WAIT_COUNT":
     try:
         count = int(message.text)
     except:
