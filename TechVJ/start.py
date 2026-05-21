@@ -118,19 +118,137 @@ async def save(client: Client, message: Message):
         return await message.reply_text("📌 Now send number of files to download:")
 
     # STEP 2: Count receive
-    if state == "WAIT_COUNT":
+if state == "WAIT_COUNT":
+    try:
+        count = int(message.text)
+    except:
+        return await message.reply_text("❌ Please send valid number")
+
+    start_link = batch_temp.DATA[uid]["start_link"]
+
+    batch_temp.STATE[uid] = None
+
+    datas = start_link.split("/")
+
+    temp = datas[-1].replace("?single", "").split("-")
+
+    fromID = int(temp[0].strip())
+    toID = fromID + count - 1
+
+    # LOGIN SYSTEM
+    if LOGIN_SYSTEM == True:
+        user_data = await db.get_session(uid)
+
+        if user_data is None:
+            return await message.reply_text(
+                "**First login using /login**"
+            )
+
+        api_id = int(await db.get_api_id(uid))
+        api_hash = await db.get_api_hash(uid)
+
         try:
-            count = int(message.text)
+            acc = Client(
+                "batch_session",
+                session_string=user_data,
+                api_hash=api_hash,
+                api_id=api_id
+            )
+
+            await acc.connect()
+
         except:
-            return await message.reply_text("❌ Please send valid number")
+            return await message.reply_text(
+                "❌ Login session expired"
+            )
 
-        start_link = batch_temp.DATA[uid]["start_link"]
+    else:
+        acc = TechVJUser
 
-        batch_temp.STATE[uid] = None
+    await message.reply_text(
+        f"🚀 Batch Started\n\nFrom: {fromID}\nTo: {toID}"
+    )
 
-        return await message.reply_text(
-            f"🚀 Batch Started\nStart Link: {start_link}\nCount: {count}"
-        )
+    batch_temp.IS_BATCH[uid] = False
+
+    for msgid in range(fromID, toID + 1):
+
+        if batch_temp.IS_BATCH.get(uid):
+            break
+
+        try:
+
+            # PRIVATE
+            if "https://t.me/c/" in start_link:
+
+                chatid = int("-100" + datas[4])
+
+                await handle_private(
+                    client,
+                    acc,
+                    message,
+                    chatid,
+                    msgid
+                )
+
+            # BOT LINK
+            elif "https://t.me/b/" in start_link:
+
+                username = datas[4]
+
+                await handle_private(
+                    client,
+                    acc,
+                    message,
+                    username,
+                    msgid
+                )
+
+            # PUBLIC
+            else:
+
+                username = datas[3]
+
+                try:
+                    msg = await client.get_messages(
+                        username,
+                        msgid
+                    )
+
+                    await client.copy_message(
+                        message.chat.id,
+                        msg.chat.id,
+                        msg.id,
+                        reply_to_message_id=message.id
+                    )
+
+                except:
+
+                    await handle_private(
+                        client,
+                        acc,
+                        message,
+                        username,
+                        msgid
+                    )
+
+        except Exception as e:
+
+            if ERROR_MESSAGE:
+                await message.reply_text(
+                    f"Error: {e}"
+                )
+
+        await asyncio.sleep(WAITING_TIME)
+
+    batch_temp.IS_BATCH[uid] = True
+
+    try:
+        await acc.disconnect()
+    except:
+        pass
+
+    return await message.reply_text("✅ Batch Completed")
 
     # ---------------- NORMAL FLOW BELOW ----------------
 
