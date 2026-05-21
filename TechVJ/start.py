@@ -117,24 +117,25 @@ async def save(client: Client, message: Message):
 
         return await message.reply_text("📌 Now send number of files to download:")
 
-    # STEP 2: Count receive
-        if state == "WAIT_COUNT":
-    try:
-        count = int(message.text)
-    except:
-        return await message.reply_text("❌ Please send valid number")
+    # # STEP 2: Count receive
+    if state == "WAIT_COUNT":
 
-    start_link = batch_temp.DATA[uid]["start_link"]
+        try:
+            count = int(message.text)
 
-    batch_temp.STATE[uid] = None
+        except:
+            return await message.reply_text("❌ Please send valid number")
 
-    datas = start_link.split("/")
+        start_link = batch_temp.DATA[uid]["start_link"]
 
-    temp = datas[-1].replace("?single", "").split("-")
+        batch_temp.STATE[uid] = None
 
-    fromID = int(temp[0].strip())
-    toID = fromID + count - 1
+        datas = start_link.split("/")
 
+        temp = datas[-1].replace("?single", "").split("-")
+
+        fromID = int(temp[0].strip())
+        toID = fromID + count - 1
     # LOGIN SYSTEM
     if LOGIN_SYSTEM == True:
         user_data = await db.get_session(uid)
