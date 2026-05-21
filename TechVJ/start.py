@@ -130,7 +130,16 @@ async def save(client: Client, message: Message):
 
         return await message.reply_text(
             f"🚀 Batch Started\nStart Link: {start_link}\nCount: {count}"
-		)
+        )
+
+    # ---------------- NORMAL FLOW BELOW ----------------
+
+    if ("https://t.me/+" in message.text or "https://t.me/joinchat/" in message.text) and LOGIN_SYSTEM == False:
+        if TechVJUser is None:
+            return await message.reply_text("String Session is not Set")
+
+    if "https://t.me/" not in message.text:
+        return
     # Joining chat
     if ("https://t.me/+" in message.text or "https://t.me/joinchat/" in message.text) and LOGIN_SYSTEM == False:
         if TechVJUser is None:
