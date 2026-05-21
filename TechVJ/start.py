@@ -106,17 +106,30 @@ async def send_cancel(client: Client, message: Message):
 
 @Client.on_message(filters.text & filters.private)
 async def save(client: Client, message: Message):
-
-	uid = message.from_user.id
+uid = message.from_user.id
 state = batch_temp.STATE.get(uid)
 
+# STEP 1: Start link receive
 if state == "WAIT_START_LINK":
     batch_temp.DATA[uid] = {"start_link": message.text}
     batch_temp.STATE[uid] = "WAIT_COUNT"
 
     return await message.reply_text("📌 Now send number of files to download:")
 
-	if state == "WAIT_COUNT":
+# STEP 2: Count receive
+if state == "WAIT_COUNT":
+    try:
+        count = int(message.text)
+    except:
+        return await message.reply_text("❌ Please send valid number")
+
+    start_link = batch_temp.DATA[uid]["start_link"]
+
+    batch_temp.STATE[uid] = None
+
+    return await message.reply_text(
+        f"🚀 Batch Started\nStart Link: {start_link}\nCount: {count}"
+	)
     try:
         count = int(message.text)
     except:
