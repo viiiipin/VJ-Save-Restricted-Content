@@ -137,93 +137,65 @@ async def save(client: Client, message: Message):
         fromID = int(temp[0].strip())
         toID = fromID + count - 1
     # LOGIN SYSTEM
-    if LOGIN_SYSTEM == True:
-        user_data = await db.get_session(uid)
+        if LOGIN_SYSTEM == True:
+            user_data = await db.get_session(uid)
 
-        if user_data is None:
-            return await message.reply_text(
-                "**First login using /login**"
-            )
-
-        api_id = int(await db.get_api_id(uid))
-        api_hash = await db.get_api_hash(uid)
-
-        try:
-            acc = Client(
-                "batch_session",
-                session_string=user_data,
-                api_hash=api_hash,
-                api_id=api_id
-            )
-
-            await acc.connect()
-
-        except:
-            return await message.reply_text(
-                "❌ Login session expired"
-            )
-
-    else:
-        acc = TechVJUser
-
-    await message.reply_text(
-        f"🚀 Batch Started\n\nFrom: {fromID}\nTo: {toID}"
-    )
-
-    batch_temp.IS_BATCH[uid] = False
-
-    for msgid in range(fromID, toID + 1):
-
-        if batch_temp.IS_BATCH.get(uid):
-            break
-
-        try:
-
-            # PRIVATE
-            if "https://t.me/c/" in start_link:
-
-                chatid = int("-100" + datas[4])
-
-                await handle_private(
-                    client,
-                    acc,
-                    message,
-                    chatid,
-                    msgid
+            if user_data is None:
+                return await message.reply_text(
+                    "**First login using /login**"
                 )
 
-            # BOT LINK
-            elif "https://t.me/b/" in start_link:
+            api_id = int(await db.get_api_id(uid))
+            api_hash = await db.get_api_hash(uid)
 
-                username = datas[4]
-
-                await handle_private(
-                    client,
-                    acc,
-                    message,
-                    username,
-                    msgid
+            try:
+                acc = Client(
+                    "batch_session",
+                    session_string=user_data,
+                    api_hash=api_hash,
+                    api_id=api_id
                 )
 
-            # PUBLIC
-            else:
+                await acc.connect()
 
-                username = datas[3]
+            except:
+                return await message.reply_text(
+                    "❌ Login session expired"
+                )
 
-                try:
-                    msg = await client.get_messages(
-                        username,
+        else:
+            acc = TechVJUser
+
+        await message.reply_text(
+            f"🚀 Batch Started\n\nFrom: {fromID}\nTo: {toID}"
+        )
+
+        batch_temp.IS_BATCH[uid] = False
+
+        for msgid in range(fromID, toID + 1):
+
+            if batch_temp.IS_BATCH.get(uid):
+                break
+
+            try:
+
+                # PRIVATE
+                if "https://t.me/c/" in start_link:
+
+                    chatid = int("-100" + datas[4])
+
+                    await handle_private(
+                        client,
+                        acc,
+                        message,
+                        chatid,
                         msgid
                     )
 
-                    await client.copy_message(
-                        message.chat.id,
-                        msg.chat.id,
-                        msg.id,
-                        reply_to_message_id=message.id
-                    )
+                # BOT LINK
+                elif "https://t.me/b/" in start_link:
 
-                except:
+                    username = datas[4]
 
                     await handle_private(
                         client,
@@ -233,24 +205,51 @@ async def save(client: Client, message: Message):
                         msgid
                     )
 
-        except Exception as e:
+                # PUBLIC
+                else:
 
-            if ERROR_MESSAGE:
-                await message.reply_text(
-                    f"Error: {e}"
-                )
+                    username = datas[3]
 
-        await asyncio.sleep(WAITING_TIME)
+                    try:
+                        msg = await client.get_messages(
+                            username,
+                            msgid
+                        )
 
-    batch_temp.IS_BATCH[uid] = True
+                        await client.copy_message(
+                            message.chat.id,
+                            msg.chat.id,
+                            msg.id,
+                            reply_to_message_id=message.id
+                        )
 
-    try:
-        await acc.disconnect()
-    except:
-        pass
+                    except:
 
-    return await message.reply_text("✅ Batch Completed")
+                        await handle_private(
+                            client,
+                            acc,
+                            message,
+                            username,
+                            msgid
+                        )
 
+            except Exception as e:
+
+                if ERROR_MESSAGE:
+                    await message.reply_text(
+                        f"Error: {e}"
+                    )
+
+            await asyncio.sleep(WAITING_TIME)
+
+        batch_temp.IS_BATCH[uid] = True
+
+        try:
+            await acc.disconnect()
+        except:
+            pass
+
+        return await message.reply_text("✅ Batch Completed")
     # ---------------- NORMAL FLOW BELOW ----------------
 
     if ("https://t.me/+" in message.text or "https://t.me/joinchat/" in message.text) and LOGIN_SYSTEM == False:
