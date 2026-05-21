@@ -110,6 +110,26 @@ async def save(client: Client, message: Message):
 	uid = message.from_user.id
 state = batch_temp.STATE.get(uid)
 
+if state == "WAIT_START_LINK":
+    batch_temp.DATA[uid] = {"start_link": message.text}
+    batch_temp.STATE[uid] = "WAIT_COUNT"
+
+    return await message.reply_text("📌 Now send number of files to download:")
+
+	if state == "WAIT_COUNT":
+    try:
+        count = int(message.text)
+    except:
+        return await message.reply_text("❌ Please send valid number")
+
+    start_link = batch_temp.DATA[uid]["start_link"]
+
+    batch_temp.STATE[uid] = None
+
+    return await message.reply_text(
+        f"🚀 Batch Started\nStart: {start_link}\nCount: {count}"
+	)
+
     # Joining chat
     if ("https://t.me/+" in message.text or "https://t.me/joinchat/" in message.text) and LOGIN_SYSTEM == False:
         if TechVJUser is None:
